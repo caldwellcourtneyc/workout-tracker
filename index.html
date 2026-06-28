@@ -126,6 +126,9 @@
   .field-2{display:flex; gap:11px;} .field-2 .field{flex:1;}
   .sheet-actions{display:flex; gap:10px; margin-top:8px;}
   .linkdanger{color:#ff6f9c; font-weight:700; font-size:13.5px; background:none; padding:8px; margin-top:4px;}
+  .permrow{display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:600; color:var(--ink2); background:var(--field); border:1px solid var(--line); border-radius:11px; padding:12px 13px; margin-bottom:6px; cursor:pointer;}
+  .permrow input{width:18px; height:18px; accent-color:var(--magenta); flex:none;}
+  .rmrow{display:flex; gap:14px; flex-wrap:wrap;}
   .hidden{display:none !important;}
   @media (max-width:380px){ .vtitle{font-size:24px;} }
 </style>
@@ -306,7 +309,7 @@ function viewSession(){
       </svg></div></div>
     <div class="datechip">${fmtDate(s.date)}</div>
     ${exHtml}
-    <div class="addrow" style="margin-top:4px"><button class="btn btn-ghost btn-sm" style="flex:1" onclick="editExercise()">+ Add exercise</button><button class="btn btn-ghost btn-sm" onclick="editWorkout('${w.id}')">Rename</button></div>
+    <div class="addrow" style="margin-top:4px"><button class="btn btn-ghost btn-sm" style="flex:1" onclick="addExerciseSheet()">+ Add exercise</button><button class="btn btn-ghost btn-sm" onclick="editWorkout('${w.id}')">Rename</button></div>
     ${finBtn}
     <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="saveToFile()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>Save session to OneDrive</button>`;
 }
@@ -426,8 +429,9 @@ function editExercise(exId){
     <div class="field"><label>Machine settings</label><input id="f_set" value="${e?esc(e.settings||""):""}" placeholder="Seat - 7"></div>
     <div class="field"><label>Body part</label><input id="f_bp" value="${e?esc(e.bodyPart||""):""}" placeholder="Quads, glutes"></div>
     <div class="field-2"><div class="field"><label>Target sets</label><input id="f_sets" inputmode="numeric" value="${e?e.defaultSets:2}"></div><div class="field"><label>Target reps</label><input id="f_reps" value="${e?esc(e.defaultReps||""):""}" placeholder="10-12"></div></div>
+    ${e?"":`<label class="permrow"><input type="checkbox" id="f_perm"> Add to ${esc(workoutById(nav.workoutId).name)} for next time too</label>`}
     <div class="sheet-actions"><button class="btn btn-ghost" style="flex:1" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" style="flex:1" onclick="saveExercise('${exId||""}')">Save</button></div>
-    ${e?`<button class="linkdanger" onclick="removeFromWorkout('${exId}')">Remove from this workout</button>`:""}`);
+    ${e?`<div class="rmrow"><button class="linkdanger" onclick="skipToday('${exId}')">Skip today</button>${workoutById(nav.workoutId).exerciseIds.includes(exId)?`<button class="linkdanger" onclick="removeFromPlan('${exId}')">Remove from plan</button>`:""}</div>`:""}`);
   setTimeout(()=>{ const el=document.getElementById("f_nm"); if(el) el.focus(); },50);
 }
 function saveExercise(exId){
@@ -437,14 +441,36 @@ function saveExercise(exId){
   if(exId){ Object.assign(exerciseById(exId),fields); }
   else {
     const ex=Object.assign({id:uid("e")},fields); state.exercises.push(ex);
-    const w=workoutById(nav.workoutId); if(w && !w.exerciseIds.includes(ex.id)) w.exerciseIds.push(ex.id);
     const s=todaySession(nav.workoutId); if(s && !s.exerciseIds.includes(ex.id)){ s.exerciseIds.push(ex.id); s.entries.push({exerciseId:ex.id, sets:buildSets(ex.id,s.date,ex.defaultSets)}); }
+    const perm=document.getElementById("f_perm"); if(perm&&perm.checked){ const w=workoutById(nav.workoutId); if(w && !w.exerciseIds.includes(ex.id)) w.exerciseIds.push(ex.id); }
   }
   saveLocal(); closeSheet(); render();
 }
-function removeFromWorkout(exId){
+function skipToday(exId){
+  const s=todaySession(nav.workoutId); if(s){ s.exerciseIds=s.exerciseIds.filter(x=>x!==exId); s.entries=s.entries.filter(e=>e.exerciseId!==exId); }
+  saveLocal(); closeSheet(); render();
+}
+function removeFromPlan(exId){
   const w=workoutById(nav.workoutId); if(w) w.exerciseIds=w.exerciseIds.filter(x=>x!==exId);
   const s=todaySession(nav.workoutId); if(s){ s.exerciseIds=s.exerciseIds.filter(x=>x!==exId); s.entries=s.entries.filter(e=>e.exerciseId!==exId); }
+  saveLocal(); closeSheet(); render();
+}
+function addExerciseSheet(){
+  const wname=esc(workoutById(nav.workoutId).name);
+  const s=todaySession(nav.workoutId); const inSession=new Set(s?s.exerciseIds:[]);
+  const avail=state.exercises.filter(e=>!inSession.has(e.id));
+  const rows=avail.map(e=>`<button class="card drow" style="margin-bottom:8px" onclick="addExisting('${e.id}')"><span class="dbody"><span class="dt">${esc(e.name)}</span><span class="ds">${esc(e.model||"")}</span></span><span class="muted3" style="font-weight:700">+ today</span></button>`).join("");
+  openSheet(`<h2>Add exercise</h2><div class="sub">Adds to today only. Toggle on to also add it to ${wname} for next time.</div>
+    <label class="permrow"><input type="checkbox" id="f_perm"> Also add to ${wname} for next time</label>
+    ${rows?`<div style="margin:16px 0 6px; font-size:12px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink3)">From your library</div>${rows}`:""}
+    <button class="btn btn-ghost btn-block" style="margin-top:10px" onclick="editExercise()">Create new exercise</button>
+    <button class="btn btn-soft btn-block" style="margin-top:10px" onclick="closeSheet()">Cancel</button>`);
+}
+function addExisting(exId){
+  const perm=document.getElementById("f_perm")&&document.getElementById("f_perm").checked;
+  const s=todaySession(nav.workoutId);
+  if(s && !s.exerciseIds.includes(exId)){ s.exerciseIds.push(exId); s.entries.push({exerciseId:exId, sets:buildSets(exId,s.date,exerciseById(exId).defaultSets)}); }
+  if(perm){ const w=workoutById(nav.workoutId); if(w && !w.exerciseIds.includes(exId)) w.exerciseIds.push(exId); }
   saveLocal(); closeSheet(); render();
 }
 
