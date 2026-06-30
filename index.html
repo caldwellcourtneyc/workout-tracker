@@ -142,7 +142,7 @@
   <div class="view" id="view"></div>
   <nav class="nav"><div class="navinner">
     <button class="navbtn" data-nav="workouts" onclick="go('workouts')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11M6.5 17.5h11M4 9v6M20 9v6M2 10.5v3M22 10.5v3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M8 8v8M16 8v8M5 9.5v5M19 9.5v5"/></svg>
       <span>Workouts</span></button>
     <button class="navbtn" data-nav="progress" onclick="go('progress')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5M4 19h16M8 15l3.5-4 3 2.5L20 8"/></svg>
@@ -394,6 +394,7 @@ function exportStamp(){ return new Date().toLocaleString(); }
 function exportFileName(){ return "workout-data.json"; }
 function dataOut(status){ return Object.assign({}, state, {_lastSaved:status||state._lastSaved||null}); }
 function markExportStatus(status){ state._lastSaved=status; saveLocal(); }
+function hasLoggedData(){ return state.sessions.some(s=>(s.entries||[]).some(e=>(e.sets||[]).some(st=>st.weight!=null||st.reps!=null||st.done))); }
 async function writeHandle(){
   if(!await ensurePerm()) return false;
   const status="Saved to linked file at " + exportStamp();
@@ -404,6 +405,7 @@ async function writeHandle(){
   return true;
 }
 async function saveToFile(){
+  if(!hasLoggedData()){ toast("Nothing logged yet. Save skipped so it won't overwrite your backup."); return; }
   if(fileHandle && ("showSaveFilePicker" in window)){ try{ if(await writeHandle()){ toast("Saved to "+fileHandle.name); render(); return; } }catch(e){} }
   if(!("showSaveFilePicker" in window) && ("share" in navigator)){ await shareBackup(); return; }
   downloadBackup();
@@ -415,6 +417,7 @@ function buildBackupFile(method){
   return {name,status,blob,file:new File([blob],name,{type:"application/json"})};
 }
 function downloadBackup(){
+  if(!hasLoggedData()){ toast("Nothing logged yet. Save skipped so it won't overwrite your backup."); return; }
   const backup=buildBackupFile("Downloaded backup");
   const url=URL.createObjectURL(backup.blob); const a=document.createElement("a"); a.href=url; a.download=backup.name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
   markExportStatus(backup.status); toast("Downloaded "+backup.name); render();
