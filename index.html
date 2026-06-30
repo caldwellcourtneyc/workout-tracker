@@ -425,7 +425,7 @@ function downloadBackup(){
 async function shareBackup(){
   const backup=buildBackupFile("Shared backup");
   if(navigator.canShare && navigator.canShare({files:[backup.file]})){
-    try{ await navigator.share({files:[backup.file],title:"Workout data"}); markExportStatus(backup.status); toast("Shared "+backup.name); render(); return; }catch(e){ if(e&&e.name==="AbortError") return; }
+    try{ await navigator.share({files:[backup.file]}); markExportStatus(backup.status); toast("Saved "+backup.name); render(); return; }catch(e){ if(e&&e.name==="AbortError") return; }
   }
   downloadBackup();
 }
