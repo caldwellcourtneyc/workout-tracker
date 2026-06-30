@@ -391,7 +391,7 @@ async function idb(mode,key,val){ return new Promise(res=>{ const o=indexedDB.op
 async function linkFile(){ try{ fileHandle=await window.showSaveFilePicker({suggestedName:"workout-data.json",types:[{description:"Workout data",accept:{"application/json":[".json"]}}]}); await idb("set","fileHandle",fileHandle); await writeHandle(); toast("File linked."); render(); }catch(e){ if(e&&e.name!=="AbortError") toast("Could not link file."); } }
 async function ensurePerm(){ if(!fileHandle) return false; const o={mode:"readwrite"}; if(await fileHandle.queryPermission(o)==="granted") return true; return (await fileHandle.requestPermission(o))==="granted"; }
 function exportStamp(){ return new Date().toLocaleString(); }
-function exportFileName(){ return "workout-data-" + new Date().toISOString().slice(0,16).replace(/[-:T]/g,"") + ".json"; }
+function exportFileName(){ return "workout-data.json"; }
 function dataOut(status){ return Object.assign({}, state, {_lastSaved:status||state._lastSaved||null}); }
 function markExportStatus(status){ state._lastSaved=status; saveLocal(); }
 async function writeHandle(){
