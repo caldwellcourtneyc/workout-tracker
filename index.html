@@ -376,7 +376,7 @@ function viewData(){
   const exCount = state.exercises.length, sCount = state.sessions.length;
   const desktop = hasFSA
     ? `<button class="card drow" onclick="linkFile()"><span class="di"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l6-6-6-6"/><path d="M3 21h18"/></svg></span><span class="dbody"><span class="dt">${fileHandle?"Change linked file":"Link your OneDrive file"}</span><span class="ds">${linked}<br>Pick a file once, then Save writes to it in one click.</span></span></button>`
-    : `<div class="card drow"><span class="di"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18h.01M8 21h8M12 3a6 6 0 0 0-6 6v6h12V9a6 6 0 0 0-6-6z"/></svg></span><span class="dbody"><span class="dt">Saving on your phone</span><span class="ds">Save to OneDrive opens your share menu. Choose <b>Save to Files</b>, then pick your OneDrive folder.</span></span></div>`;
+    : `<div class="card drow"><span class="di"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18h.01M8 21h8M12 3a6 6 0 0 0-6 6v6h12V9a6 6 0 0 0-6-6z"/></svg></span><span class="dbody"><span class="dt">Saving on your phone</span><span class="ds">Opens your share menu: choose <b>Save to Files</b>, then your OneDrive folder. Each save adds a dated file. Newest is your current data.</span></span></div>`;
   const dlBtn = `<button class="card drow" onclick="downloadBackup()"><span class="di"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg></span><span class="dbody"><span class="dt">Download a copy instead</span><span class="ds">Saves the file straight to this phone if the share menu is awkward.</span></span></button>`;
   return `<div class="vhead"><div><div class="eyebrow">BrainDeux</div><div class="vtitle">Data</div></div></div>
     ${desktop}
@@ -391,7 +391,7 @@ async function idb(mode,key,val){ return new Promise(res=>{ const o=indexedDB.op
 async function linkFile(){ try{ fileHandle=await window.showSaveFilePicker({suggestedName:"workout-data.json",types:[{description:"Workout data",accept:{"application/json":[".json"]}}]}); await idb("set","fileHandle",fileHandle); await writeHandle(); toast("File linked."); render(); }catch(e){ if(e&&e.name!=="AbortError") toast("Could not link file."); } }
 async function ensurePerm(){ if(!fileHandle) return false; const o={mode:"readwrite"}; if(await fileHandle.queryPermission(o)==="granted") return true; return (await fileHandle.requestPermission(o))==="granted"; }
 function exportStamp(){ return new Date().toLocaleString(); }
-function exportFileName(){ return "workout-data.json"; }
+function exportFileName(){ const d=new Date(),p=n=>String(n).padStart(2,"0"); return `workout-data-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.json`; }
 function dataOut(status){ return Object.assign({}, state, {_lastSaved:status||state._lastSaved||null}); }
 function markExportStatus(status){ state._lastSaved=status; saveLocal(); }
 function hasLoggedData(){ return state.sessions.some(s=>(s.entries||[]).some(e=>(e.sets||[]).some(st=>st.weight!=null||st.reps!=null||st.done))); }
