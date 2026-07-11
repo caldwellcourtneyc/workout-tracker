@@ -204,9 +204,7 @@ function seed(){
     { id:uid("w"), name:"Workout B", note:"Weeks 3-8", exerciseIds:[id("glutedrive"),id("latpull"),id("legext"),id("chestfly"),id("backext"),id("cablerow"),id("biceps"),id("lateral")] },
     { id:uid("w"), name:"Minimum Viable", note:"Low-energy days · done counts", exerciseIds:[id("legpress"),id("row"),id("chestpress"),id("legcurl")] }
   ];
-  const finisher = { name:"Arm Finisher", exerciseIds:[id("triceps"),id("biceps"),id("lateral")] };
-
-  return { version:2, exercises, workouts, finisher, sessions:[], _lastSaved:null };
+  return { version:2, exercises, workouts, sessions:[], _lastSaved:null };
 }
 
 /* ---------- lookups ---------- */
@@ -293,9 +291,6 @@ function viewSession(){
     </div>`;
   }).join("");
 
-  const finisherIn = state.finisher.exerciseIds.every(id=>s.exerciseIds.includes(id));
-  const finBtn = finisherIn ? "" : `<button class="btn btn-ghost btn-block btn-sm" style="margin-top:2px" onclick="addFinisher()">+ Arm finisher today</button>`;
-
   return `<div class="vhead">
       <div><div class="eyebrow" onclick="go('workouts')" style="cursor:pointer">&larr; ${esc(w.name)}</div><div class="vtitle">Today</div></div>
       <div class="ring-wrap"><svg viewBox="0 0 62 62" width="62" height="62">
@@ -306,18 +301,11 @@ function viewSession(){
     <div class="datechip">${fmtDate(s.date)}</div>
     ${exHtml}
     <div class="addrow" style="margin-top:4px"><button class="btn btn-ghost btn-sm" style="flex:1" onclick="addExerciseSheet()">+ Add exercise</button><button class="btn btn-ghost btn-sm" onclick="editWorkout('${w.id}')">Rename</button></div>
-    ${finBtn}
     <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="saveToFile()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>Save session to file</button>`;
 }
 function setVal(exId,i,key,val){ const s=todaySession(nav.workoutId); if(!s) return; entryFor(s,exId).sets[i][key]=(val===""?null:num(val)); saveLocal(); }
 function toggleSet(exId,i){ const s=todaySession(nav.workoutId); if(!s) return; const e=entryFor(s,exId); e.sets[i].done=!e.sets[i].done; saveLocal(); render(); }
 function addSet(exId){ const s=todaySession(nav.workoutId); if(!s) return; const e=entryFor(s,exId); const l=e.sets[e.sets.length-1]; e.sets.push({weight:l?l.weight:null,reps:l?l.reps:null,done:false}); saveLocal(); render(); }
-function addFinisher(){
-  const s=todaySession(nav.workoutId); if(!s) return;
-  state.finisher.exerciseIds.forEach(exId=>{ if(!s.exerciseIds.includes(exId)){ s.exerciseIds.push(exId); s.entries.push({exerciseId:exId, sets:buildSets(exId,s.date,exerciseById(exId).defaultSets)}); } });
-  saveLocal(); render(); toast("Arm finisher added today.");
-}
-
 /* ---------- progress ---------- */
 function viewProgress(){
   const lib = state.exercises;
