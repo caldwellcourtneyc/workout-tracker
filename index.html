@@ -60,6 +60,10 @@
   .ring-wrap{position:relative; width:62px; height:62px; flex-shrink:0;}
   .ring-fg{transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1);}
   .datechip{font-size:12.5px; color:var(--ink2); font-weight:600; margin-bottom:16px;}
+  .sessionbar{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px;}
+  .sessionbar .datechip{margin-bottom:0;}
+  .wp-block{margin-bottom:22px;}
+  .wp-exname{font-family:var(--display); font-weight:700; font-size:17px; color:var(--ink); margin:0 2px 10px;}
 
   .ex{margin-bottom:12px; padding:15px; transition:background .2s, border-color .2s;}
   .ex.done{background:var(--card-done); border-color:#54264a;}
@@ -240,9 +244,9 @@ function exDone(session, exId){ const e=session.entries.find(x=>x.exerciseId===e
 /* ---------- routing ---------- */
 function go(name, workoutId){ nav.name=name; if(workoutId!==undefined) nav.workoutId=workoutId; render(); document.getElementById("view").scrollTop=0; }
 function render(){
-  document.querySelectorAll(".navbtn").forEach(b=>{ const t=b.getAttribute("data-nav"); b.classList.toggle("on",(nav.name===t)||(nav.name==="session"&&t==="workouts")); });
+  document.querySelectorAll(".navbtn").forEach(b=>{ const t=b.getAttribute("data-nav"); b.classList.toggle("on",(nav.name===t)||((nav.name==="session"||nav.name==="wprogress")&&t==="workouts")); });
   const v=document.getElementById("view");
-  v.innerHTML = nav.name==="session"?viewSession() : nav.name==="progress"?viewProgress() : nav.name==="data"?viewData() : viewWorkouts();
+  v.innerHTML = nav.name==="session"?viewSession() : nav.name==="wprogress"?viewWorkoutProgress() : nav.name==="progress"?viewProgress() : nav.name==="data"?viewData() : viewWorkouts();
 }
 
 /* ---------- workouts list ---------- */
@@ -298,7 +302,7 @@ function viewSession(){
         <circle class="ring-fg" cx="31" cy="31" r="26" fill="none" stroke="var(--magenta)" stroke-width="6" stroke-linecap="round" stroke-dasharray="${round(C)}" stroke-dashoffset="${round(off)}" transform="rotate(-90 31 31)"/>
         <text x="31" y="35" text-anchor="middle" font-size="15" font-weight="800" fill="var(--ink)" font-family="Gabarito">${done}/${total}</text>
       </svg></div></div>
-    <div class="datechip">${fmtDate(s.date)}</div>
+    <div class="sessionbar"><div class="datechip">${fmtDate(s.date)}</div><button class="btn btn-soft btn-sm" onclick="go('wprogress','${w.id}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Progress</button></div>
     ${exHtml}
     <div class="addrow" style="margin-top:4px"><button class="btn btn-ghost btn-sm" style="flex:1" onclick="addExerciseSheet()">+ Add exercise</button><button class="btn btn-ghost btn-sm" onclick="editWorkout('${w.id}')">Rename</button></div>
     <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="saveToFile()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>Save session to file</button>`;
@@ -313,21 +317,8 @@ function viewProgress(){
   if(!nav.progressEx || !lib.find(e=>e.id===nav.progressEx)) nav.progressEx = lib[0].id;
   const options = lib.map(e=>`<option value="${e.id}" ${e.id===nav.progressEx?"selected":""}>${esc(e.name)}</option>`).join("");
 
-  const points = [];
-  state.sessions.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(s=>{
-    const ent = s.entries.find(x=>x.exerciseId===nav.progressEx); if(!ent) return;
-    const ws = ent.sets.filter(st=>st.done).map(st=>st.weight).filter(w=>w!=null);
-    if(ws.length) points.push({ date:s.date, top:Math.max(...ws) });
-  });
-
-  let stats="";
-  if(points.length){
-    const latest=points[points.length-1].top, best=Math.max(...points.map(p=>p.top)), delta=round(latest-points[0].top);
-    stats=`<div class="stat-row">
-      <div class="stat"><div class="lab">Current</div><div class="val">${round(latest)}<span class="su"> lbs</span></div></div>
-      <div class="stat"><div class="lab">Best</div><div class="val">${round(best)}<span class="su"> lbs</span></div></div>
-      <div class="stat"><div class="lab">Since start</div><div class="val">${delta>=0?"+":""}${delta}<span class="su"> lbs</span></div></div></div>`;
-  }
+  const points = progressPoints(nav.progressEx);
+  const stats = statsBlock(points);
   const chart = points.length ? lineChart(points) : `<div class="empty"><div class="big">No logged sets yet</div>Check off sets and the line shows up here.</div>`;
   return `<div class="vhead"><div><div class="eyebrow">Workout Tracker</div><div class="vtitle">Progress</div></div></div>
     <div class="selectwrap"><select onchange="nav.progressEx=this.value; render()">${options}</select><span class="car"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span></div>
@@ -347,6 +338,38 @@ function lineChart(points){
   const gy=[lo+(hi-lo)*0.5,hi-(hi-lo)*0.08];
   const grid=gy.map(v=>`<line x1="${pad}" y1="${round(y(v))}" x2="${W-padR}" y2="${round(y(v))}" stroke="var(--line)" stroke-width="1"/><text x="${pad-7}" y="${round(y(v))+3}" text-anchor="end" font-size="10" fill="var(--ink3)" font-family="Onest">${Math.round(v)}</text>`).join("");
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block">${grid}<path d="${area}" fill="var(--magenta-soft)"/><path d="${line}" fill="none" stroke="var(--magenta)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${dots}${xl}</svg>`;
+}
+
+function progressPoints(exId){
+  const points=[];
+  state.sessions.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(s=>{
+    const ent=s.entries.find(x=>x.exerciseId===exId); if(!ent) return;
+    const ws=ent.sets.filter(st=>st.done).map(st=>st.weight).filter(w=>w!=null);
+    if(ws.length) points.push({ date:s.date, top:Math.max(...ws) });
+  });
+  return points;
+}
+function statsBlock(points){
+  if(!points.length) return "";
+  const latest=points[points.length-1].top, best=Math.max(...points.map(p=>p.top)), delta=round(latest-points[0].top);
+  return `<div class="stat-row">
+    <div class="stat"><div class="lab">Current</div><div class="val">${round(latest)}<span class="su"> lbs</span></div></div>
+    <div class="stat"><div class="lab">Best</div><div class="val">${round(best)}<span class="su"> lbs</span></div></div>
+    <div class="stat"><div class="lab">Since start</div><div class="val">${delta>=0?"+":""}${delta}<span class="su"> lbs</span></div></div></div>`;
+}
+function viewWorkoutProgress(){
+  const w=workoutById(nav.workoutId); if(!w) return viewWorkouts();
+  const blocks=w.exerciseIds.map(exId=>{
+    const e=exerciseById(exId); if(!e) return "";
+    const points=progressPoints(exId);
+    const body = points.length
+      ? `${statsBlock(points)}<div class="card chart-card">${lineChart(points)}</div>`
+      : `<div class="card chart-card"><div class="empty"><div class="big">No logged sets yet</div>Log a set and the line shows up here.</div></div>`;
+    return `<div class="wp-block"><div class="wp-exname">${esc(e.name)}</div>${body}</div>`;
+  }).join("");
+  return `<div class="vhead">
+      <div><div class="eyebrow" onclick="go('session','${w.id}')" style="cursor:pointer">&larr; ${esc(w.name)}</div><div class="vtitle">Progress</div></div></div>
+    ${blocks || `<div class="empty"><div class="big">Nothing to chart yet</div></div>`}`;
 }
 
 /* ---------- data ---------- */
