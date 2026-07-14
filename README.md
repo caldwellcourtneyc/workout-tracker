@@ -6,6 +6,8 @@ per set, watch the progress ring fill, and track each machine's weight over time
 **[Try it live](https://workout-tracker-zeta-five-83.vercel.app)** — your data
 stays in your own browser; nothing is sent to a server.
 
+<img src="screenshots/home.png" alt="Workout Tracker home screen" width="320">
+
 ## How it works
 
 - **Everything is in `index.html`.** No build step, no dependencies. Open it in a
