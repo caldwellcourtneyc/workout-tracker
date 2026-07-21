@@ -339,7 +339,7 @@ function viewSession(){
       </svg></div></div>
     <div class="sessionbar"><div class="datechip">${fmtDate(s.date)}</div><button class="btn btn-soft btn-sm" onclick="go('wprogress','${w.id}')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Progress</button></div>
     ${exHtml}
-    <div class="addrow" style="margin-top:4px"><button class="btn btn-ghost btn-sm" style="flex:1" onclick="addExerciseSheet()">+ Add exercise</button><button class="btn btn-ghost btn-sm" onclick="editWorkout('${w.id}')">Rename</button></div>
+    <div class="addrow" style="margin-top:4px"><button class="btn btn-ghost btn-sm" style="flex:1" onclick="addExerciseSheet()">+ Add exercise</button><button class="btn btn-ghost btn-sm" onclick="editWorkout('${w.id}')">Edit</button></div>
     <button class="btn btn-primary btn-block" style="margin-top:16px" onclick="saveToFile()"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M5 20h14"/></svg>Save session to file</button>`;
 }
 function setVal(exId,i,key,val){ const s=todaySession(nav.workoutId); if(!s) return; entryFor(s,exId).sets[i][key]=(val===""?null:num(val)); saveLocal(); }
@@ -545,7 +545,7 @@ document.getElementById("scrim").addEventListener("click",e=>{ if(e.target.id===
 
 function editWorkout(id){
   const w=id?workoutById(id):null;
-  openSheet(`<h2>${w?"Rename workout":"New workout"}</h2><div class="sub">${w?"":"A group of exercises you do together."}</div>
+  openSheet(`<h2>${w?"Edit workout":"New workout"}</h2><div class="sub">${w?"Rename it, or delete it below.":"A group of exercises you do together."}</div>
     <div class="field"><label>Name</label><input id="f_wname" value="${w?esc(w.name):""}" placeholder="Workout C"></div>
     <div class="sheet-actions"><button class="btn btn-ghost" style="flex:1" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" style="flex:1" onclick="saveWorkout('${id||""}')">Save</button></div>
     ${w&&state.workouts.length>1?`<button class="linkdanger" onclick="deleteWorkout('${id}')">Delete workout</button>`:""}`);
