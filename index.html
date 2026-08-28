@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#14101b">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -35,7 +36,7 @@
   .vtitle{font-family:var(--display); font-weight:700; font-size:27px; color:var(--ink); margin-top:3px;}
 
   button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit;}
-  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; font-size:15px; border-radius:13px; padding:13px 16px; transition:transform .08s, filter .15s;}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; font-size:15px; border-radius:13px; padding:13px 16px; transition:transform .08s, filter .15s; text-decoration:none;}
   .btn:active{transform:scale(.98);}
   .btn-primary{background:var(--violet-btn); color:#fff;}
   .btn-magenta{background:var(--magenta); color:#1a0a14;}
@@ -75,6 +76,7 @@
   .chip{font-size:11.5px; font-weight:600; height:26px; padding:0 11px; border-radius:999px; background:#262031; color:#b0a3c4; display:inline-flex; align-items:center; gap:4px; cursor:pointer; white-space:nowrap; flex:0 0 auto;}
   .chip.loc{background:var(--violet-soft); color:var(--violet-ink); font-weight:700;}
   .chip.addloc{background:var(--field); color:var(--ink3); font-weight:600; border:1px dashed var(--line2);}
+  .chip.formchip{background:var(--magenta-soft); color:#ff9ed8; font-weight:700; border:1px solid #582244;}
   .chip svg{width:11px; height:11px; flex:none;}
   .tgt{font-size:12px; color:var(--ink3); font-weight:600; margin-left:auto;}
 
@@ -137,6 +139,20 @@
   .permrow{display:flex; align-items:center; gap:9px; font-size:13.5px; font-weight:600; color:var(--ink2); background:var(--field); border:1px solid var(--line); border-radius:11px; padding:12px 13px; margin-bottom:6px; cursor:pointer;}
   .permrow input{width:18px; height:18px; accent-color:var(--magenta); flex:none;}
   .rmrow{display:flex; gap:14px; flex-wrap:wrap;}
+  .form-media{position:relative; width:100%; aspect-ratio:16/9; background:#09070d; border:1px solid var(--line); border-radius:14px; overflow:hidden; margin:14px 0 17px;}
+  .form-media iframe,.form-media video{display:block; width:100%; height:100%; border:0; object-fit:contain;}
+  .form-media-fallback{height:100%; display:flex; align-items:center; justify-content:center; padding:22px; color:var(--ink2); text-align:center; font-size:13.5px;}
+  .form-source-link{color:var(--violet-ink); text-decoration:none;}
+  .form-source-link:hover{text-decoration:underline;}
+  .form-section{background:var(--card); border:1px solid var(--line); border-radius:13px; padding:14px 15px; margin-bottom:10px;}
+  .form-section-title{font-family:var(--display); font-weight:700; font-size:14px; color:var(--ink); margin-bottom:8px;}
+  .form-cues{padding-left:20px; color:var(--ink2); font-size:13.5px; line-height:1.55;}
+  .form-cues li+li{margin-top:5px;}
+  .form-watch{color:#ffc0d9; background:var(--magenta-soft); border-color:#582244; font-size:13.5px; line-height:1.5;}
+  .form-note{font-size:11.5px; color:var(--ink3); text-align:center; margin-top:12px; line-height:1.45;}
+  .guide-fields{border-top:1px solid var(--line); margin-top:4px; padding-top:15px;}
+  .guide-fields .group-label{font-family:var(--display); font-size:15px; font-weight:700; color:var(--ink); margin-bottom:3px;}
+  .guide-fields .group-help{font-size:12px; color:var(--ink3); margin-bottom:13px;}
   .summary{display:flex; align-items:center; gap:14px; margin-bottom:16px; padding:15px; width:100%; text-align:left;}
   .summary .snum{font-family:var(--display); font-weight:800; font-size:30px; color:var(--ink); line-height:1;}
   .summary .slab{font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink3); margin-top:4px;}
@@ -198,6 +214,188 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;",
 function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function loadLocal(){ try{ const r=localStorage.getItem(LS_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
 
+const STATE_VERSION = 4;
+const FORM_GUIDES = {
+  legPress:{
+    source:"NASM",
+    url:"https://www.youtube.com/watch?v=cDGOn-yfKJA",
+    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/leg-press",
+    cues:["Adjust the seat so you can keep your hips and back supported throughout the rep.","Place your whole foot on the platform and track your knees in line with your toes.","Press smoothly, stopping just short of locking your knees, then return with control."],
+    watchFor:"Avoid letting your hips curl away from the pad at the bottom or snapping your knees straight at the top."
+  },
+  gluteDrive:{
+    source:"Nautilus / Core Health & Fitness",
+    url:"https://player.vimeo.com/video/322120209?title=0&byline=0&portrait=0",
+    sourceUrl:"https://info.corehandf.com/glute-drive",
+    cues:["Center the padded belt low across your pelvis and plant your whole foot on the platform.","Keep your ribs down and drive through your heels as your hips rise.","Finish by squeezing your glutes without pushing your lower back past neutral."],
+    watchFor:"Avoid placing the belt across your abdomen or finishing the rep by arching your lower back."
+  },
+  legExtension:{
+    source:"PureGym",
+    url:"https://www.youtube.com/watch?v=4ZDm5EbiFI8",
+    sourceUrl:"https://www.puregym.com/exercises/legs/quad-exercises/leg-extensions/",
+    cues:["Align your knee with the machine pivot and place the roller just above your ankles.","Keep your back and hips against the pads while you straighten your knees.","Pause briefly at the top, then lower the weight under control."],
+    watchFor:"Avoid kicking the weight with momentum or forcing your knees into a painful range."
+  },
+  legCurl:{
+    source:"NASM",
+    url:"https://www.youtube.com/watch?v=_2Kd0d-JEUM",
+    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/seated-leg-curl",
+    cues:["Align your knees with the machine pivot and secure the thigh pad comfortably.","Keep your hips and back against the seat as you curl your heels down and back.","Pause in the shortened position, then let the weight return slowly."],
+    watchFor:"Avoid lifting your hips off the seat or letting the weight stack pull your legs forward."
+  },
+  hipAbduction:{
+    source:"PureGym",
+    url:"https://www.youtube.com/watch?v=G_8LItOiZ0Q",
+    sourceUrl:"https://www.puregym.com/exercises/legs/inner-outer-thigh/seated-hip-abduction/",
+    cues:["Set the pads against the outside of your knees and sit with your back supported.","Press your knees outward only as far as your hips comfortably allow.","Pause briefly, then bring the pads together slowly."],
+    watchFor:"Avoid bouncing out of the closed position or rocking your torso to move more weight."
+  },
+  hipAdduction:{
+    source:"PureGym",
+    url:"https://www.youtube.com/watch?v=CjAVezAggkI",
+    sourceUrl:"https://www.puregym.com/exercises/legs/inner-outer-thigh/seated-hip-adduction/",
+    cues:["Set a comfortable starting width before releasing the adjustment lever.","Keep your back supported and squeeze your thighs together smoothly.","Pause near the center, then let the pads open under control."],
+    watchFor:"Avoid forcing an excessive inner-thigh stretch or allowing the weight to pull your legs apart."
+  },
+  inclinePress:{
+    source:"NASM",
+    url:"https://www.youtube.com/watch?v=JKnpHchOWPU",
+    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/two-arm-incline-dumbbell-chest-press",
+    cues:["Use a low-to-moderate incline and keep both feet planted.","Keep your shoulder blades supported and wrists stacked over elbows.","Lower with control only as far as your shoulders comfortably allow."],
+    watchFor:"Avoid excessive lower-back arching or letting the dumbbells drift toward your face."
+  },
+  seatedRow:{
+    source:"NASM",
+    url:"https://www.youtube.com/watch?v=k0cTJCfxa0Y",
+    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/seated-machine-row-close-grip",
+    cues:["Adjust the seat and chest support before selecting a working weight.","Keep your chest tall and pull your elbows back without shrugging.","Return the handles slowly instead of letting the stack pull you forward."],
+    watchFor:"Avoid leaning backward to turn the row into a momentum-driven movement."
+  },
+  lateralRaise:{
+    source:"Nuffield Health",
+    url:"https://www.youtube.com/watch?v=-WEZj9ePTYI",
+    sourceUrl:"https://www.youtube.com/watch?v=-WEZj9ePTYI",
+    cues:["Keep a soft bend in your elbows and raise slightly forward of your sides.","Lead with your elbows while keeping wrists neutral.","Use a controlled range; shoulder height is plenty."],
+    watchFor:"Avoid swinging the dumbbells or shrugging your shoulders toward your ears."
+  },
+  tricepsExtension:{
+    source:"Programme",
+    url:"https://p001.nyc3.digitaloceanspaces.com/movements/overhead_db_tricep_extension.mp4",
+    sourceUrl:"https://programme.app/exercises/overhead-db-tricep-extension/636",
+    cues:["Keep your ribs down and your torso steady.","Point your elbows mostly forward without forcing them together.","Lower with control into a comfortable triceps stretch."],
+    watchFor:"Avoid flaring the ribs or arching your lower back to move the weight."
+  },
+  hammerCurl:{
+    source:"Programme",
+    url:"https://p001.nyc3.digitaloceanspaces.com/movements/hammer_curls.mp4",
+    sourceUrl:"https://programme.app/exercises/hammer-curls/404",
+    cues:["Keep your palms facing each other throughout the repetition.","Hold your elbows mostly still beside your ribs.","Lift and lower with control through a comfortable range."],
+    watchFor:"Avoid swinging your torso or driving your elbows forward to finish the curl."
+  },
+  deadBug:{
+    source:"NASM",
+    url:"https://www.youtube.com/watch?v=bxn9FBrt4-A",
+    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/dead-bug",
+    cues:["Exhale gently and brace before moving an arm and the opposite leg.","Maintain comfortable lower-back contact with the floor.","Shorten the reach as soon as your back starts to arch."],
+    watchFor:"Do not forcefully smash your back down or chase a range you cannot control."
+  },
+  rkcPlank:{
+    source:"E3 Rehab",
+    url:"https://www.youtube.com/watch?v=qD5PNJ4H740",
+    sourceUrl:"https://www.youtube.com/watch?v=qD5PNJ4H740",
+    cues:["Set your elbows under your shoulders and keep your neck relaxed.","Squeeze your glutes and quads while gently tucking your pelvis.","Pull your elbows toward your toes without moving them, and keep breathing."],
+    watchFor:"End the set when full-body tension breaks instead of extending a loose hold."
+  },
+  stomachVacuum:{
+    source:"The Physio Fix",
+    url:"https://www.youtube.com/watch?v=K7DdbrceX14",
+    sourceUrl:"https://www.youtube.com/watch?v=K7DdbrceX14",
+    cues:["Begin in a comfortable position and fully exhale without straining.","Gently draw your abdomen inward while keeping your shoulders and neck relaxed.","Use a short, controlled hold, then release and breathe normally before repeating."],
+    watchFor:"Stop if you feel dizzy, pelvic pressure, pain, or difficulty controlling your breathing."
+  }
+};
+const LEGACY_AUTO_GUIDE_URLS = new Set([
+  "https://player.vimeo.com/video/424324255?h=2d3725ba11&title=0&byline=0&portrait=0",
+  "https://www.youtube.com/watch?v=TeFo51Q_Nsc",
+  "https://www.youtube.com/watch?v=-WEZj9ePTYI",
+  "https://p001.nyc3.digitaloceanspaces.com/movements/overhead_db_tricep_extension.mp4",
+  "https://p001.nyc3.digitaloceanspaces.com/movements/hammer_curls.mp4",
+  "https://p001.nyc3.digitaloceanspaces.com/movements/deadbugs.mp4",
+  "https://www.youtube.com/watch?v=qD5PNJ4H740"
+]);
+
+function cloneGuide(guide){ return guide ? JSON.parse(JSON.stringify(guide)) : null; }
+function normName(s){ return String(s||"").toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]+/g," ").trim(); }
+function recommendedGuideFor(ex){
+  const n=normName(ex&&ex.name), model=normName(ex&&ex.model);
+  if(["leg press","leg press machine","seated leg press","45 degree leg press"].includes(n)) return FORM_GUIDES.legPress;
+  if(["glute press","glute drive","glute press machine","glute drive machine","hip thrust machine"].includes(n)) return FORM_GUIDES.gluteDrive;
+  if(["leg extension","leg extensions","leg extension machine"].includes(n)) return FORM_GUIDES.legExtension;
+  if(["hamstring curl","hamstring curls","hamstring curl machine","leg curl","leg curls","seated leg curl","lying leg curl"].includes(n)) return FORM_GUIDES.legCurl;
+  if(["hip abduction","hip abduction machine","hip abductor","hip abductor machine"].includes(n)) return FORM_GUIDES.hipAbduction;
+  if(["hip adduction","hip adduction machine","hip adductor","hip adductor machine"].includes(n)) return FORM_GUIDES.hipAdduction;
+  if(["incline dumbbell chest press","incline dumbbell press","incline db chest press","incline db press"].includes(n)) return FORM_GUIDES.inclinePress;
+  if(["seated row","seated row machine","machine seated row"].includes(n)) return FORM_GUIDES.seatedRow;
+  if(["dumbbell lateral raise","dumbbell lateral raises","db lateral raise","db lateral raises"].includes(n)) return FORM_GUIDES.lateralRaise;
+  if(["lateral raise","lateral raises"].includes(n) && model.includes("dumbbell") && !model.includes("machine") && !model.includes("nautilus")) return FORM_GUIDES.lateralRaise;
+  if(["overhead db tricep extension","overhead db triceps extension","overhead dumbbell tricep extension","overhead dumbbell triceps extension"].includes(n)) return FORM_GUIDES.tricepsExtension;
+  if(["dumbbell hammer curl","dumbbell hammer curls","db hammer curl","db hammer curls","hammer curl","hammer curls"].includes(n)) return FORM_GUIDES.hammerCurl;
+  if(["dead bug","dead bugs","deadbug","deadbugs"].includes(n)) return FORM_GUIDES.deadBug;
+  if(n==="rkc plank") return FORM_GUIDES.rkcPlank;
+  if(["stomach vacuum","stomach vacuums","abdominal vacuum","abdominal vacuums"].includes(n)) return FORM_GUIDES.stomachVacuum;
+  return null;
+}
+function migrateState(data){
+  if(!data||!Array.isArray(data.exercises)) return false;
+  let changed=false, previousVersion=data.version||0;
+  data.exercises.forEach(ex=>{
+    const guide=recommendedGuideFor(ex);
+    if(!Object.prototype.hasOwnProperty.call(ex,"formGuide")){
+      if(guide){ ex.formGuide=cloneGuide(guide); changed=true; }
+    }
+    else if(previousVersion<4&&guide&&ex.formGuide&&LEGACY_AUTO_GUIDE_URLS.has(ex.formGuide.url)){
+      ex.formGuide=cloneGuide(guide); changed=true;
+    }
+  });
+  if((data.version||0)<STATE_VERSION){ data.version=STATE_VERSION; changed=true; }
+  return changed;
+}
+function safeHttpUrl(value){
+  try{ const u=new URL(value); return (u.protocol==="https:"||u.protocol==="http:") ? u.href : ""; }catch(e){ return ""; }
+}
+function youtubeId(value){
+  try{
+    const u=new URL(value), host=u.hostname.replace(/^www\./,"");
+    if(host==="youtu.be") return u.pathname.split("/").filter(Boolean)[0]||"";
+    if(host==="youtube.com"||host==="m.youtube.com"||host==="youtube-nocookie.com"){
+      if(u.pathname==="/watch") return u.searchParams.get("v")||"";
+      const parts=u.pathname.split("/").filter(Boolean); if(["embed","shorts"].includes(parts[0])) return parts[1]||"";
+    }
+  }catch(e){}
+  return "";
+}
+function vimeoEmbedUrl(value){
+  try{
+    const u=new URL(value), host=u.hostname.replace(/^www\./,""), parts=u.pathname.split("/").filter(Boolean);
+    if(host==="player.vimeo.com"&&parts[0]==="video"&&/^\d+$/.test(parts[1]||"")) return u.href;
+    if(host==="vimeo.com"&&/^\d+$/.test(parts[0]||"")) return `https://player.vimeo.com/video/${parts[0]}`;
+  }catch(e){}
+  return "";
+}
+function guideMediaHtml(guide,exerciseName){
+  const url=safeHttpUrl(guide&&guide.url); if(!url) return `<div class="form-media"><div class="form-media-fallback">No playable demonstration link is saved.</div></div>`;
+  const yt=youtubeId(url);
+  if(yt){
+    const origin=(location.protocol==="https:"||location.protocol==="http:")?`&origin=${encodeURIComponent(location.origin)}`:"";
+    return `<div class="form-media"><iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(yt)}?rel=0&playsinline=1${origin}" title="${esc(exerciseName)} form demonstration" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+  }
+  const vimeo=vimeoEmbedUrl(url);
+  if(vimeo) return `<div class="form-media"><iframe src="${esc(vimeo)}" title="${esc(exerciseName)} form demonstration" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
+  if(/\.mp4(?:$|\?)/i.test(url)) return `<div class="form-media"><video src="${esc(url)}" controls autoplay muted loop playsinline preload="metadata"></video></div>`;
+  return `<div class="form-media"><div class="form-media-fallback">This reference opens on its source site.</div></div>`;
+}
+
 /* ---------- seed: shared exercise library + plan templates ---------- */
 function seed(){
   const E = {};
@@ -230,7 +428,7 @@ function seed(){
     { id:uid("w"), name:"Workout B", note:"Weeks 3-8", exerciseIds:[id("glutedrive"),id("latpull"),id("legext"),id("chestfly"),id("backext"),id("cablerow"),id("biceps"),id("lateral")] },
     { id:uid("w"), name:"Minimum Viable", note:"Low-energy days · done counts", exerciseIds:[id("legpress"),id("row"),id("chestpress"),id("legcurl")] }
   ];
-  return { version:2, exercises, workouts, sessions:[], _lastSaved:null };
+  return { version:STATE_VERSION, exercises, workouts, sessions:[], _lastSaved:null };
 }
 
 /* ---------- lookups ---------- */
@@ -316,6 +514,7 @@ function viewSession(){
       ? `<span class="chip loc" onclick="editExercise('${exId}')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>${esc(e.location)}</span>`
       : `<span class="chip addloc" onclick="editExercise('${exId}')"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>add location</span>`;
     const settings = e.settings ? `<span class="chip" onclick="editExercise('${exId}')">${esc(e.settings)}</span>` : "";
+    const formGuide = e.formGuide&&e.formGuide.url ? `<button class="chip formchip" onclick="showFormGuide('${exId}')" aria-label="Show form guide for ${esc(e.name)}"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>Form</button>` : "";
     const sets = ent.sets.map((st,i)=>`<div class="setrow">
         <span class="setlabel">Set ${i+1}</span>
         <span class="fieldwrap"><input inputmode="decimal" placeholder="lbs" value="${st.weight??""}" oninput="setVal('${exId}',${i},'weight',this.value)"><span class="u">lbs</span></span>
@@ -325,7 +524,7 @@ function viewSession(){
     return `<div class="card ex ${exDone(s,exId)?"done":""}">
       <div class="ex-head"><div class="exinfo"><div class="exnm">${esc(e.name)}</div><div class="exmodel">${esc(e.model||"")}</div></div>
         <button class="icobtn" aria-label="Edit" onclick="editExercise('${exId}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button></div>
-      <div class="chips">${loc}${settings}<span class="tgt">target ${e.defaultSets}&times;${esc(e.defaultReps||"")}</span></div>
+      <div class="chips">${formGuide}${loc}${settings}<span class="tgt">target ${e.defaultSets}&times;${esc(e.defaultReps||"")}</span></div>
       <div class="sets">${sets}<div class="addrow"><button class="btn btn-soft btn-sm" onclick="addSet('${exId}')">+ Set</button></div></div>
     </div>`;
   }).join("");
@@ -533,15 +732,32 @@ async function shareBackup(){
 async function importFile(input){
   const f=input.files&&input.files[0]; input.value=""; if(!f) return;
   try{ const data=JSON.parse(await f.text()); if(!data||!Array.isArray(data.workouts)||!Array.isArray(data.exercises)) throw 0;
-    confirmSheet("Load this file?",`It has ${data.exercises.length} exercises and ${(data.sessions||[]).length} sessions. This replaces what's on this device.`,()=>{ state=data; if(!state.version) state.version=2; saveLocal(); closeSheet(); go("workouts"); toast("Loaded."); });
+    confirmSheet("Load this file?",`It has ${data.exercises.length} exercises and ${(data.sessions||[]).length} sessions. This replaces what's on this device.`,()=>{ state=data; migrateState(state); saveLocal(); closeSheet(); go("workouts"); toast("Loaded."); });
   }catch(e){ toast("That file could not be read."); }
 }
-function resetAll(){ confirmSheet("Reset all data?","Clears everything on this device and reloads the starting plan. Export a backup first if you want one.",()=>{ state=seed(); saveLocal(); closeSheet(); go("workouts"); toast("Reset."); }); }
+function resetAll(){ confirmSheet("Reset all data?","Clears everything on this device and reloads the starting plan. Export a backup first if you want one.",()=>{ state=seed(); migrateState(state); saveLocal(); closeSheet(); go("workouts"); toast("Reset."); }); }
 
 /* ---------- sheets / editors ---------- */
-function openSheet(html){ document.getElementById("sheet").innerHTML=html; document.getElementById("scrim").classList.add("show"); }
-function closeSheet(){ document.getElementById("scrim").classList.remove("show"); }
+function openSheet(html){ const sheet=document.getElementById("sheet"); sheet.innerHTML=html; sheet.scrollTop=0; document.getElementById("scrim").classList.add("show"); }
+function closeSheet(){ document.getElementById("scrim").classList.remove("show"); document.getElementById("sheet").innerHTML=""; }
 document.getElementById("scrim").addEventListener("click",e=>{ if(e.target.id==="scrim") closeSheet(); });
+
+function showFormGuide(exId){
+  const ex=exerciseById(exId), guide=ex&&ex.formGuide; if(!ex||!guide||!guide.url){ toast("No form guide saved yet."); return; }
+  const cues=Array.isArray(guide.cues)?guide.cues.filter(Boolean):[];
+  const cueHtml=cues.length?`<div class="form-section"><div class="form-section-title">Key cues</div><ul class="form-cues">${cues.map(c=>`<li>${esc(c)}</li>`).join("")}</ul></div>`:"";
+  const watch=guide.watchFor?`<div class="form-section form-watch"><strong>Watch for:</strong> ${esc(guide.watchFor)}</div>`:"";
+  const sourceUrl=safeHttpUrl(guide.sourceUrl||guide.url), yt=youtubeId(guide.url);
+  const watchUrl=yt?`https://www.youtube.com/watch?v=${encodeURIComponent(yt)}`:sourceUrl;
+  const openLabel=yt?"Open in YouTube":"Open source";
+  const sourceButton=watchUrl?`<a class="btn btn-soft" style="flex:1" href="${esc(watchUrl)}" target="_blank" rel="noopener">${openLabel}</a>`:"";
+  const sourceCredit=guide.source?(sourceUrl?` · <a class="form-source-link" href="${esc(sourceUrl)}" target="_blank" rel="noopener">${esc(guide.source)}</a>`:` · ${esc(guide.source)}`):"";
+  const mediaNote="Video needs an internet connection. The written cues stay in your workout backup.";
+  openSheet(`<h2>${esc(ex.name)}</h2><div class="sub">Form guide${sourceCredit}</div>
+    ${guideMediaHtml(guide,ex.name)}${cueHtml}${watch}
+    <div class="sheet-actions"><button class="btn btn-ghost" style="flex:1" onclick="closeSheet()">Back to workout</button>${sourceButton}</div>
+    <div class="form-note">${mediaNote} Reference only; stop if a movement causes pain.</div>`);
+}
 
 function editWorkout(id){
   const w=id?workoutById(id):null;
@@ -560,6 +776,7 @@ function deleteWorkout(id){ confirmSheet("Delete this workout?","The template is
 
 function editExercise(exId){
   const e=exId?exerciseById(exId):null;
+  const guide=e&&e.formGuide?e.formGuide:null;
   const wname=esc(workoutById(nav.workoutId).name);
   openSheet(`<h2>${e?"Edit exercise":"Add exercise"}</h2><div class="sub">${e?"Machine details apply everywhere this exercise appears.":`Create it, then choose whether it is for today, the template, or both.`}</div>
     <div class="field"><label>Exercise name</label><input id="f_nm" value="${e?esc(e.name):""}" placeholder="Leg Press"></div>
@@ -568,6 +785,12 @@ function editExercise(exId){
     <div class="field"><label>Machine settings</label><input id="f_set" value="${e?esc(e.settings||""):""}" placeholder="Seat - 7"></div>
     <div class="field"><label>Body part</label><input id="f_bp" value="${e?esc(e.bodyPart||""):""}" placeholder="Quads, glutes"></div>
     <div class="field-2"><div class="field"><label>Target sets</label><input id="f_sets" inputmode="numeric" value="${e?e.defaultSets:2}"></div><div class="field"><label>Target reps</label><input id="f_reps" value="${e?esc(e.defaultReps||""):""}" placeholder="10-12"></div></div>
+    <div class="guide-fields"><div class="group-label">Form guide <span class="muted3">(optional)</span></div><div class="group-help">Paste a YouTube, Vimeo, or direct MP4 link. Media loads only when you tap Form.</div>
+      <div class="field"><label>Demonstration link</label><input id="f_guide_url" value="${guide?esc(guide.url||""):""}" placeholder="https://youtube.com/watch?v=..."></div>
+      <div class="field-2"><div class="field"><label>Source / credit</label><input id="f_guide_source" value="${guide?esc(guide.source||""):""}" placeholder="Trainer or library"></div><div class="field"><label>Source page</label><input id="f_guide_source_url" value="${guide?esc(guide.sourceUrl||""):""}" placeholder="Optional"></div></div>
+      <div class="field"><label>Key cues <span class="muted3">(one per line)</span></label><textarea id="f_guide_cues" placeholder="Keep your ribs down&#10;Move with control">${guide&&Array.isArray(guide.cues)?esc(guide.cues.join("\n")):""}</textarea></div>
+      <div class="field"><label>Watch for</label><textarea id="f_guide_watch" placeholder="One common mistake">${guide?esc(guide.watchFor||""):""}</textarea></div>
+    </div>
     ${e?"":scopePicker(wname)}
     <div class="sheet-actions"><button class="btn btn-ghost" style="flex:1" onclick="closeSheet()">Cancel</button><button class="btn btn-primary" style="flex:1" onclick="saveExercise('${exId||""}')">Save</button></div>
     ${e?`<div class="rmrow"><button class="linkdanger" onclick="skipToday('${exId}')">Remove today only</button>${workoutById(nav.workoutId).exerciseIds.includes(exId)?`<button class="linkdanger" onclick="removeFromPlanConfirm('${exId}')">Remove from template + today</button>`:""}</div>`:""}`);
@@ -576,10 +799,20 @@ function editExercise(exId){
 function saveExercise(exId){
   const g=id=>(document.getElementById(id).value||"").trim();
   const nm=g("f_nm"); if(!nm){ toast("Name it first."); return; }
-  const fields={ name:nm, model:g("f_model"), location:g("f_loc"), settings:g("f_set"), bodyPart:g("f_bp"), defaultSets:Math.max(1,parseInt(g("f_sets"))||1), defaultReps:g("f_reps") };
-  if(exId){ Object.assign(exerciseById(exId),fields); }
+  const guideUrl=g("f_guide_url"), sourceUrl=g("f_guide_source_url");
+  if(guideUrl&&!safeHttpUrl(guideUrl)){ toast("Use a full http or https video link."); return; }
+  if(sourceUrl&&!safeHttpUrl(sourceUrl)){ toast("Use a full http or https source link."); return; }
+  const formGuide=guideUrl?{ url:safeHttpUrl(guideUrl), source:g("f_guide_source"), sourceUrl:sourceUrl?safeHttpUrl(sourceUrl):safeHttpUrl(guideUrl), cues:g("f_guide_cues").split(/\r?\n/).map(x=>x.trim()).filter(Boolean), watchFor:g("f_guide_watch") }:null;
+  const fields={ name:nm, model:g("f_model"), location:g("f_loc"), settings:g("f_set"), bodyPart:g("f_bp"), defaultSets:Math.max(1,parseInt(g("f_sets"))||1), defaultReps:g("f_reps"), formGuide };
+  if(exId){
+    const existing=exerciseById(exId), canRecommend=!Object.prototype.hasOwnProperty.call(existing,"formGuide");
+    Object.assign(existing,fields);
+    if(canRecommend&&!existing.formGuide){ const recommended=recommendedGuideFor(existing); if(recommended) existing.formGuide=cloneGuide(recommended); }
+  }
   else {
-    const ex=Object.assign({id:uid("e")},fields); state.exercises.push(ex);
+    const ex=Object.assign({id:uid("e")},fields);
+    if(!ex.formGuide){ const recommended=recommendedGuideFor(ex); if(recommended) ex.formGuide=cloneGuide(recommended); }
+    state.exercises.push(ex);
     addExerciseToScope(ex.id,currentAddScope(),false);
   }
   saveLocal(); closeSheet(); render();
@@ -651,7 +884,7 @@ function confirmSheet(title,msg,onYes){ openSheet(`<h2>${esc(title)}</h2><div cl
 let toastT=null;
 function toast(msg){ let t=document.getElementById("toast"); if(!t){ t=document.createElement("div"); t.id="toast"; t.style.cssText="position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:var(--violet-btn);color:#fff;padding:11px 18px;border-radius:12px;font-family:var(--display);font-weight:700;font-size:14px;z-index:99;max-width:88%;text-align:center;transition:opacity .25s;opacity:0;"; document.body.appendChild(t); } t.textContent=msg; t.style.opacity="1"; clearTimeout(toastT); toastT=setTimeout(()=>{t.style.opacity="0";},2200); }
 
-(async function(){ state=loadLocal()||seed(); try{ const h=await idb("get","fileHandle"); if(h) fileHandle=h; }catch(e){} render(); })();
+(async function(){ state=loadLocal()||seed(); if(migrateState(state)) saveLocal(); try{ const h=await idb("get","fileHandle"); if(h) fileHandle=h; }catch(e){} render(); })();
 </script>
 </body>
 </html>
