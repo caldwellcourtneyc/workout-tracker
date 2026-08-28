@@ -214,7 +214,7 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;",
 function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function loadLocal(){ try{ const r=localStorage.getItem(LS_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
 
-const STATE_VERSION = 4;
+const STATE_VERSION = 5;
 const FORM_GUIDES = {
   legPress:{
     source:"NASM",
@@ -272,6 +272,48 @@ const FORM_GUIDES = {
     cues:["Adjust the seat and chest support before selecting a working weight.","Keep your chest tall and pull your elbows back without shrugging.","Return the handles slowly instead of letting the stack pull you forward."],
     watchFor:"Avoid leaning backward to turn the row into a momentum-driven movement."
   },
+  leverRow:{
+    source:"NASM · row pattern",
+    url:"https://www.youtube.com/watch?v=k0cTJCfxa0Y",
+    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/seated-machine-row-close-grip",
+    cues:["Adjust the seat so your chest stays supported and the handles are within a comfortable reach.","Brace against the pad and pull your elbows back without shrugging.","Let your shoulder blades move naturally as you return the handles under control."],
+    watchFor:"Avoid lifting your chest away from the pad or using torso momentum to finish the pull."
+  },
+  chestPress:{
+    source:"NASM",
+    url:"https://www.youtube.com/watch?v=lRo9zZ7EwpM",
+    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/chest-press-machine",
+    cues:["Set the seat so the handles begin around mid-chest and keep both feet planted.","Keep your shoulder blades supported and your wrists stacked behind the handles.","Press smoothly, then return only as far as your shoulders comfortably allow."],
+    watchFor:"Avoid shrugging, bouncing out of the bottom, or locking your elbows forcefully."
+  },
+  rearDeltFly:{
+    source:"HASfit",
+    url:"https://www.youtube.com/watch?v=VHI0QGe0KDU",
+    sourceUrl:"https://www.youtube.com/watch?v=VHI0QGe0KDU",
+    cues:["Adjust the seat so the handles are close to shoulder height and keep your chest against the pad.","Maintain a soft elbow bend and open your arms by driving the elbows outward and back.","Pause briefly, then let the handles return slowly without losing your posture."],
+    watchFor:"Avoid shrugging, arching away from the chest pad, or forcing the handles too far behind your body."
+  },
+  machineTricepsExtension:{
+    source:"AMAD SIDDIQUEE · Nautilus Impact demo",
+    url:"https://www.youtube.com/watch?v=ifuxC_PIx0M",
+    sourceUrl:"https://www.youtube.com/watch?v=ifuxC_PIx0M",
+    cues:["Adjust the seat so your upper arms rest securely on the pad and your elbows align with the machine pivot.","Keep your shoulders relaxed as you straighten your elbows against the handles.","Stop just short of a hard lockout, then return the weight slowly."],
+    watchFor:"Avoid lifting your upper arms from the pad or using your torso to drive the handles down."
+  },
+  standingOverheadPress:{
+    source:"PureGym",
+    url:"https://www.youtube.com/watch?v=43GSKivZnw4",
+    sourceUrl:"https://www.puregym.com/exercises/arms-and-shoulders/shoulder-press/military-press/",
+    cues:["Stand tall with your feet stable and begin with the weight around upper-chest or shoulder height.","Brace your trunk and press overhead while keeping the weight balanced over your mid-foot.","Finish with your arms overhead without forcing your ribs forward, then lower with control."],
+    watchFor:"Avoid leaning back to turn the press into an incline press or pressing around your face instead of moving it safely out of the bar path."
+  },
+  inclineDumbbellCurl:{
+    source:"Howcast",
+    url:"https://www.youtube.com/watch?v=b4jOP-spQW8",
+    sourceUrl:"https://www.youtube.com/watch?v=b4jOP-spQW8",
+    cues:["Recline against the bench with your arms hanging naturally and palms facing forward.","Keep your upper arms still as you curl the dumbbells without lifting your shoulders.","Squeeze briefly, then lower until your elbows are comfortably straight."],
+    watchFor:"Avoid swinging the dumbbells or letting your elbows drift forward as the weight rises."
+  },
   lateralRaise:{
     source:"Nuffield Health",
     url:"https://www.youtube.com/watch?v=-WEZj9ePTYI",
@@ -313,6 +355,13 @@ const FORM_GUIDES = {
     sourceUrl:"https://www.youtube.com/watch?v=K7DdbrceX14",
     cues:["Begin in a comfortable position and fully exhale without straining.","Gently draw your abdomen inward while keeping your shoulders and neck relaxed.","Use a short, controlled hold, then release and breathe normally before repeating."],
     watchFor:"Stop if you feel dizzy, pelvic pressure, pain, or difficulty controlling your breathing."
+  },
+  romanianDeadlift:{
+    source:"NASM · hinge pattern",
+    url:"https://www.youtube.com/watch?v=V8Hdl1FiNt4",
+    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/dumbbell-romanian-deadlift",
+    cues:["Stand with a soft knee bend, brace, and keep the weight close to your legs.","Push your hips backward while maintaining a long, neutral spine.","Stop when you feel a strong hamstring stretch, then drive your hips forward to stand tall."],
+    watchFor:"Avoid turning the hinge into a squat, rounding your back, or lowering farther than your hamstring mobility allows."
   }
 };
 const LEGACY_AUTO_GUIDE_URLS = new Set([
@@ -337,13 +386,20 @@ function recommendedGuideFor(ex){
   if(["hip adduction","hip adduction machine","hip adductor","hip adductor machine"].includes(n)) return FORM_GUIDES.hipAdduction;
   if(["incline dumbbell chest press","incline dumbbell press","incline db chest press","incline db press"].includes(n)) return FORM_GUIDES.inclinePress;
   if(["seated row","seated row machine","machine seated row"].includes(n)) return FORM_GUIDES.seatedRow;
+  if(["lever row","nautilus lever row","incline lever row","chest supported lever row"].includes(n)) return FORM_GUIDES.leverRow;
+  if(["chest press","chest press machine","machine chest press"].includes(n)) return FORM_GUIDES.chestPress;
+  if(["rear delt fly","rear delt flies","rear deltoid fly","rear deltoid flies","reverse fly","reverse flies"].includes(n)) return FORM_GUIDES.rearDeltFly;
+  if(["triceps extension","tricep extension","machine triceps extension","machine tricep extension"].includes(n) && (model.includes("machine")||model.includes("nautilus"))) return FORM_GUIDES.machineTricepsExtension;
+  if(["standing overhead press","standing shoulder press","military press","standing barbell press"].includes(n)) return FORM_GUIDES.standingOverheadPress;
+  if(["dumbbell bicep curls reclining","dumbbell biceps curls reclining","reclining dumbbell curl","reclining dumbbell curls","incline dumbbell curl","incline dumbbell curls","incline bicep curl","incline bicep curls","incline biceps curl","incline biceps curls"].includes(n)) return FORM_GUIDES.inclineDumbbellCurl;
   if(["dumbbell lateral raise","dumbbell lateral raises","db lateral raise","db lateral raises"].includes(n)) return FORM_GUIDES.lateralRaise;
   if(["lateral raise","lateral raises"].includes(n) && model.includes("dumbbell") && !model.includes("machine") && !model.includes("nautilus")) return FORM_GUIDES.lateralRaise;
-  if(["overhead db tricep extension","overhead db triceps extension","overhead dumbbell tricep extension","overhead dumbbell triceps extension"].includes(n)) return FORM_GUIDES.tricepsExtension;
+  if(["overhead tricep extension","overhead triceps extension","overhead db tricep extension","overhead db triceps extension","overhead dumbbell tricep extension","overhead dumbbell triceps extension"].includes(n)) return FORM_GUIDES.tricepsExtension;
   if(["dumbbell hammer curl","dumbbell hammer curls","db hammer curl","db hammer curls","hammer curl","hammer curls"].includes(n)) return FORM_GUIDES.hammerCurl;
   if(["dead bug","dead bugs","deadbug","deadbugs"].includes(n)) return FORM_GUIDES.deadBug;
   if(n==="rkc plank") return FORM_GUIDES.rkcPlank;
   if(["stomach vacuum","stomach vacuums","abdominal vacuum","abdominal vacuums"].includes(n)) return FORM_GUIDES.stomachVacuum;
+  if(["romanian dead lift","romanian deadlift","dumbbell romanian dead lift","dumbbell romanian deadlift","kettlebell romanian dead lift","kettlebell romanian deadlift","rdl"].includes(n)) return FORM_GUIDES.romanianDeadlift;
   return null;
 }
 function migrateState(data){
