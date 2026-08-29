@@ -214,7 +214,7 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;",
 function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function loadLocal(){ try{ const r=localStorage.getItem(LS_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
 
-const STATE_VERSION = 5;
+const STATE_VERSION = 6;
 const FORM_GUIDES = {
   legPress:{
     source:"NASM",
@@ -229,6 +229,13 @@ const FORM_GUIDES = {
     sourceUrl:"https://info.corehandf.com/glute-drive",
     cues:["Center the padded belt low across your pelvis and plant your whole foot on the platform.","Keep your ribs down and drive through your heels as your hips rise.","Finish by squeezing your glutes without pushing your lower back past neutral."],
     watchFor:"Avoid placing the belt across your abdomen or finishing the rep by arching your lower back."
+  },
+  glutePress:{
+    source:"Vanderbilt University",
+    url:"https://www.youtube.com/watch?v=q7coOsRlDpo",
+    sourceUrl:"https://www.youtube.com/watch?v=q7coOsRlDpo",
+    cues:["Adjust the moving foot support before selecting your working weight.","Hold the handles, keep a soft bend in your standing leg, and place the other foot securely on the press support.","Drive the support backward with your working leg, then return it slowly while keeping your torso stable."],
+    watchFor:"Avoid twisting your hips, arching your lower back, or letting the weight pull your working leg forward."
   },
   legExtension:{
     source:"PureGym",
@@ -273,9 +280,9 @@ const FORM_GUIDES = {
     watchFor:"Avoid leaning backward to turn the row into a momentum-driven movement."
   },
   leverRow:{
-    source:"NASM · row pattern",
-    url:"https://www.youtube.com/watch?v=k0cTJCfxa0Y",
-    sourceUrl:"https://www.nasm.org/resource-center/exercise-library/seated-machine-row-close-grip",
+    source:"Vision Fitness · setup & movement",
+    url:"https://www.youtube.com/watch?v=kDAeMjQPvuo",
+    sourceUrl:"https://www.youtube.com/watch?v=kDAeMjQPvuo",
     cues:["Adjust the seat so your chest stays supported and the handles are within a comfortable reach.","Brace against the pad and pull your elbows back without shrugging.","Let your shoulder blades move naturally as you return the handles under control."],
     watchFor:"Avoid lifting your chest away from the pad or using torso momentum to finish the pull."
   },
@@ -287,9 +294,9 @@ const FORM_GUIDES = {
     watchFor:"Avoid shrugging, bouncing out of the bottom, or locking your elbows forcefully."
   },
   rearDeltFly:{
-    source:"HASfit",
-    url:"https://www.youtube.com/watch?v=VHI0QGe0KDU",
-    sourceUrl:"https://www.youtube.com/watch?v=VHI0QGe0KDU",
+    source:"Darien YMCA",
+    url:"https://player.vimeo.com/video/596131522?title=0&byline=0&portrait=0",
+    sourceUrl:"https://vimeo.com/596131522",
     cues:["Adjust the seat so the handles are close to shoulder height and keep your chest against the pad.","Maintain a soft elbow bend and open your arms by driving the elbows outward and back.","Pause briefly, then let the handles return slowly without losing your posture."],
     watchFor:"Avoid shrugging, arching away from the chest pad, or forcing the handles too far behind your body."
   },
@@ -301,11 +308,11 @@ const FORM_GUIDES = {
     watchFor:"Avoid lifting your upper arms from the pad or using your torso to drive the handles down."
   },
   standingOverheadPress:{
-    source:"PureGym",
-    url:"https://www.youtube.com/watch?v=43GSKivZnw4",
-    sourceUrl:"https://www.puregym.com/exercises/arms-and-shoulders/shoulder-press/military-press/",
-    cues:["Stand tall with your feet stable and begin with the weight around upper-chest or shoulder height.","Brace your trunk and press overhead while keeping the weight balanced over your mid-foot.","Finish with your arms overhead without forcing your ribs forward, then lower with control."],
-    watchFor:"Avoid leaning back to turn the press into an incline press or pressing around your face instead of moving it safely out of the bar path."
+    source:"The White Coat Trainer",
+    url:"https://www.youtube.com/watch?v=yizMbcuwCj4",
+    sourceUrl:"https://whitecoattrainer.com/blog/shoulder-dumbbell-overhead-press",
+    cues:["Stand tall with a dumbbell at each shoulder and your feet set firmly.","Brace your trunk and press both dumbbells overhead while keeping them balanced over your mid-foot.","Finish with your arms overhead without forcing your ribs forward, then lower the dumbbells to your shoulders with control."],
+    watchFor:"Avoid leaning back, flaring your ribs, or letting the dumbbells drift far in front of your body."
   },
   inclineDumbbellCurl:{
     source:"Howcast",
@@ -371,7 +378,11 @@ const LEGACY_AUTO_GUIDE_URLS = new Set([
   "https://p001.nyc3.digitaloceanspaces.com/movements/overhead_db_tricep_extension.mp4",
   "https://p001.nyc3.digitaloceanspaces.com/movements/hammer_curls.mp4",
   "https://p001.nyc3.digitaloceanspaces.com/movements/deadbugs.mp4",
-  "https://www.youtube.com/watch?v=qD5PNJ4H740"
+  "https://www.youtube.com/watch?v=qD5PNJ4H740",
+  "https://player.vimeo.com/video/322120209?title=0&byline=0&portrait=0",
+  "https://www.youtube.com/watch?v=k0cTJCfxa0Y",
+  "https://www.youtube.com/watch?v=VHI0QGe0KDU",
+  "https://www.youtube.com/watch?v=43GSKivZnw4"
 ]);
 
 function cloneGuide(guide){ return guide ? JSON.parse(JSON.stringify(guide)) : null; }
@@ -379,7 +390,8 @@ function normName(s){ return String(s||"").toLowerCase().replace(/&/g,"and").rep
 function recommendedGuideFor(ex){
   const n=normName(ex&&ex.name), model=normName(ex&&ex.model);
   if(["leg press","leg press machine","seated leg press","45 degree leg press"].includes(n)) return FORM_GUIDES.legPress;
-  if(["glute press","glute drive","glute press machine","glute drive machine","hip thrust machine"].includes(n)) return FORM_GUIDES.gluteDrive;
+  if(["glute press","glute press machine"].includes(n)) return FORM_GUIDES.glutePress;
+  if(["glute drive","glute drive machine","hip thrust machine"].includes(n)) return FORM_GUIDES.gluteDrive;
   if(["leg extension","leg extensions","leg extension machine"].includes(n)) return FORM_GUIDES.legExtension;
   if(["hamstring curl","hamstring curls","hamstring curl machine","leg curl","leg curls","seated leg curl","lying leg curl"].includes(n)) return FORM_GUIDES.legCurl;
   if(["hip abduction","hip abduction machine","hip abductor","hip abductor machine"].includes(n)) return FORM_GUIDES.hipAbduction;
@@ -410,7 +422,7 @@ function migrateState(data){
     if(!Object.prototype.hasOwnProperty.call(ex,"formGuide")){
       if(guide){ ex.formGuide=cloneGuide(guide); changed=true; }
     }
-    else if(previousVersion<4&&guide&&ex.formGuide&&LEGACY_AUTO_GUIDE_URLS.has(ex.formGuide.url)){
+    else if(previousVersion<6&&guide&&ex.formGuide&&LEGACY_AUTO_GUIDE_URLS.has(ex.formGuide.url)){
       ex.formGuide=cloneGuide(guide); changed=true;
     }
   });
