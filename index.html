@@ -214,7 +214,7 @@ function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;",
 function saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function loadLocal(){ try{ const r=localStorage.getItem(LS_KEY); if(r) return JSON.parse(r); }catch(e){} return null; }
 
-const STATE_VERSION = 6;
+const STATE_VERSION = 7;
 const FORM_GUIDES = {
   legPress:{
     source:"NASM",
@@ -369,6 +369,41 @@ const FORM_GUIDES = {
     sourceUrl:"https://www.nasm.org/resource-center/exercise-library/dumbbell-romanian-deadlift",
     cues:["Stand with a soft knee bend, brace, and keep the weight close to your legs.","Push your hips backward while maintaining a long, neutral spine.","Stop when you feel a strong hamstring stretch, then drive your hips forward to stand tall."],
     watchFor:"Avoid turning the hinge into a squat, rounding your back, or lowering farther than your hamstring mobility allows."
+  },
+  tricepsPushdown:{
+    source:"Cable rope pushdown tutorial",
+    url:"https://www.youtube.com/watch?v=n2FSCB4vRSA",
+    sourceUrl:"https://www.youtube.com/watch?v=n2FSCB4vRSA",
+    cues:["Set the pulley high, grip the rope or bar, and pin your elbows against your sides.","Keep your elbows fixed as you press down until your arms are fully extended.","Let the cable rise slowly under control without letting your elbows drift up."],
+    watchFor:"Avoid swinging your torso or letting your elbows flare and travel; only the forearms move."
+  },
+  pallofPress:{
+    source:"Cable Pallof press demonstration",
+    url:"https://www.youtube.com/watch?v=3YAubbqajX0",
+    sourceUrl:"https://www.youtube.com/watch?v=3YAubbqajX0",
+    cues:["Set the cable near chest height and stand side-on, feet hip-width, body stacked upright.","Brace your core and press the handle straight out from your chest, resisting the pull to rotate.","Hold briefly with arms extended, then bring the handle back to your chest under control."],
+    watchFor:"Avoid rushing or letting your torso twist toward the machine; the point is to not rotate."
+  },
+  calfRaiseLegPress:{
+    source:"Leg-press calf raise tutorial",
+    url:"https://www.youtube.com/watch?v=PYZY00hI43w",
+    sourceUrl:"https://www.youtube.com/watch?v=PYZY00hI43w",
+    cues:["Press the sled up and place just the balls of your feet on the lower edge, heels off the platform.","Let your heels drop for a full stretch, then push through the balls of your feet to rise as high as you can.","Pause at the top squeeze, then lower slowly under control."],
+    watchFor:"Keep your knees mostly straight and steady; this is an ankle movement, not a leg press, so don't bounce."
+  },
+  captainsChairKneeRaise:{
+    source:"Captain's chair knee raise guide",
+    url:"https://www.youtube.com/watch?v=7KDDZtaUaxw",
+    sourceUrl:"https://www.youtube.com/watch?v=7KDDZtaUaxw",
+    cues:["Settle your back against the pad and support yourself on the forearm rests with shoulders down.","Brace your core and raise your knees toward your chest by curling your pelvis up, not just swinging your thighs.","Lower your legs slowly without letting your lower back arch off the pad."],
+    watchFor:"Avoid swinging or using momentum; move slowly so the abs do the work rather than the hip flexors."
+  },
+  standingHipAbduction:{
+    source:"Standing hip abduction machine demo",
+    url:"https://www.youtube.com/watch?v=B6JvfdaOVAk",
+    sourceUrl:"https://www.youtube.com/watch?v=B6JvfdaOVAk",
+    cues:["Set the pad against the outside of the working leg and hold the supports, standing tall.","Press your leg out to the side, leading with the outer thigh, only as far as your hip comfortably allows.","Pause at the top, then return your leg slowly without letting the weight pull it back."],
+    watchFor:"Avoid leaning your torso to move more weight; stay upright so the outer glute does the work."
   }
 };
 const LEGACY_AUTO_GUIDE_URLS = new Set([
@@ -412,6 +447,12 @@ function recommendedGuideFor(ex){
   if(n==="rkc plank") return FORM_GUIDES.rkcPlank;
   if(["stomach vacuum","stomach vacuums","abdominal vacuum","abdominal vacuums"].includes(n)) return FORM_GUIDES.stomachVacuum;
   if(["romanian dead lift","romanian deadlift","dumbbell romanian dead lift","dumbbell romanian deadlift","kettlebell romanian dead lift","kettlebell romanian deadlift","rdl"].includes(n)) return FORM_GUIDES.romanianDeadlift;
+  if(["triceps pushdown","tricep pushdown","cable triceps pushdown","cable tricep pushdown","triceps rope pushdown","tricep rope pushdown","rope pushdown","cable pushdown","pushdown"].includes(n)) return FORM_GUIDES.tricepsPushdown;
+  if(["cable pallof press hold","pallof press hold","pallof hold","cable pallof press","pallof press","pallof pulley dynamic","pallof press dynamic","cable pallof press dynamic","pallof dynamic"].includes(n)) return FORM_GUIDES.pallofPress;
+  if(["calf raises on leg press","calf raise on leg press","leg press calf raise","leg press calf raises","calf press","calf press on leg press","seated calf press","calf raise leg press"].includes(n)) return FORM_GUIDES.calfRaiseLegPress;
+  if(["captain chair knee raises","captain chair knee raise","captains chair knee raise","captains chair knee raises","captain s chair knee raise","captain s chair knee raises","captain chair leg raise","captains chair leg raise","hanging knee raise","hanging knee raises"].includes(n)) return FORM_GUIDES.captainsChairKneeRaise;
+  if(["3d multi abductor","3 d multi abductor","multi abductor","multi hip abductor","standing abductor","standing hip abductor","standing hip abduction","standing abduction machine","cable hip abduction"].includes(n)) return FORM_GUIDES.standingHipAbduction;
+  if(["lateral raise","lateral raises"].includes(n)) return FORM_GUIDES.lateralRaise;
   return null;
 }
 function migrateState(data){
@@ -423,6 +464,9 @@ function migrateState(data){
       if(guide){ ex.formGuide=cloneGuide(guide); changed=true; }
     }
     else if(previousVersion<6&&guide&&ex.formGuide&&LEGACY_AUTO_GUIDE_URLS.has(ex.formGuide.url)){
+      ex.formGuide=cloneGuide(guide); changed=true;
+    }
+    else if(previousVersion<7&&guide&&ex.formGuide===null){
       ex.formGuide=cloneGuide(guide); changed=true;
     }
   });
