@@ -828,18 +828,31 @@ function buildBackupFile(method){
   const blob=new Blob([JSON.stringify(dataOut(status),null,2)],{type:"application/json"});
   return {name,status,blob,file:new File([blob],name,{type:"application/json"})};
 }
-function downloadBackup(){
+function downloadBackup(note){
   if(!hasLoggedData()){ toast("Nothing logged yet. Save skipped so it won't overwrite your backup."); return; }
   const backup=buildBackupFile("Downloaded backup");
   const url=URL.createObjectURL(backup.blob); const a=document.createElement("a"); a.href=url; a.download=backup.name; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1500);
-  markExportStatus(backup.status); toast("Downloaded "+backup.name); render();
+  markExportStatus(backup.status); toast((typeof note==="string"?note+" ":"")+"Downloaded "+backup.name); render();
 }
+// iOS can leave a share request hanging with no menu shown; a later tap would otherwise do nothing visible.
+let shareStarted=0;
 async function shareBackup(){
+  if(shareStarted){ if(Date.now()-shareStarted>1500) stuckShareSheet(); else toast("Opening share menu…"); return; }
   const backup=buildBackupFile("Shared backup");
   if(navigator.canShare && navigator.canShare({files:[backup.file]})){
-    try{ await navigator.share({files:[backup.file]}); markExportStatus(backup.status); toast("Saved "+backup.name); render(); return; }catch(e){ if(e&&e.name==="AbortError") return; }
+    shareStarted=Date.now(); toast("Opening share menu…");
+    let failed="";
+    try{ await navigator.share({files:[backup.file]}); markExportStatus(backup.status); toast("Saved "+backup.name); render(); return; }
+    catch(e){ if(e&&e.name==="AbortError"){ toast("Save cancelled. Nothing was saved."); return; } failed="Share menu failed ("+((e&&e.name)||"unknown error")+")."; }
+    finally{ shareStarted=0; }
+    downloadBackup(failed); return;
   }
-  downloadBackup();
+  downloadBackup("Share menu not available.");
+}
+function stuckShareSheet(){
+  const t=document.getElementById("toast"); if(t) t.style.opacity="0";
+  openSheet(`<h2>The share menu didn't open</h2><div class="sub">Your phone is still holding the last save request. Your workout is safe on this device. Try the share menu again, or download a copy. If neither works, close and reopen the app, then tap Save.</div>
+    <div class="sheet-actions"><button class="btn btn-ghost" style="flex:1" onclick="closeSheet(); downloadBackup()">Download a copy</button><button class="btn btn-primary" style="flex:1" onclick="closeSheet(); shareStarted=0; shareBackup()">Try again</button></div>`);
 }
 async function importFile(input){
   const f=input.files&&input.files[0]; input.value=""; if(!f) return;
